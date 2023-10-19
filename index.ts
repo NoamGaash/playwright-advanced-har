@@ -1,9 +1,11 @@
-import { test as base } from '@playwright/test';
+import { test as base, type Page, type Request } from '@playwright/test';
+import type { Har } from 'har-format';
+import fs from 'fs';
 
 export const test = base.extend({
     page: async ({ page }, use) => {
         const originalRouteFromHAR = page.routeFromHAR.bind(page);
-        page.routeFromHAR =(har: string, options?: {
+        page.routeFromHAR =async (filename: string, options?: {
             /**
              * - If set to 'abort' any request not found in the HAR file will be aborted.
              * - If set to 'fallback' missing requests will be sent to the network.
@@ -37,7 +39,13 @@ export const test = base.extend({
              */
             url?: string|RegExp;
           }): Promise<void> => {
-            return originalRouteFromHAR(har, options);
+            if(options?.update){
+                // on update, we want to record the HAR just like the original playwright method
+                return originalRouteFromHAR(filename, options);
+            } else {
+                const har = JSON.parse(await fs.promises.readFile(filename, { encoding: 'utf8' }));
+                return advancedRouteFromHAR(har, options ?? {}, page);
+            }
           }
 
         await use(
@@ -45,3 +53,62 @@ export const test = base.extend({
         );
     },
 });
+
+async function advancedRouteFromHAR(har: Har, options: {
+    notFound?: "abort"|"fallback";
+    url?: string|RegExp;
+}, page: Page): Promise<void> {
+    options.notFound ??= 'abort';
+    options.url ??= /.*/;
+
+    test.step('advancedRouteFromHAR', async () => {
+        await page.route(options!.url!, async (route) => {
+            const entry = findEntry(har, route.request(), options!);
+            if (entry === null) {
+                if(options?.notFound === 'fallback'){
+                    route.continue();
+                } else {
+                    route.abort();
+                }
+            } else {
+                route.fulfill({
+                    status: entry.response.status,
+                    headers: entry.response.headers,
+                    body: entry.response.content.text,
+                });
+            }
+        });
+    })
+}
+
+function findEntry(har: any, request: Request, options: {
+    url?: string|RegExp;
+}): any {
+    return  har.log.entries
+        .map((entry) => {
+            return {
+                entry,
+                score: defaultMatcher(request, entry),
+            };
+        }).filter((entry) => entry.score >= 0)
+        .sort((a, b) => b.score - a.score)
+        .map((entry) => entry.entry)
+        [0];
+
+    
+}
+
+function defaultMatcher(request: Request, entry: Har["log"]["entries"][0]): number {
+    if (request.method() !== entry.request.method)
+        return -1;
+    if (!request.url().match(entry.request.url))
+        return -1;
+    if (["POST", "PUT", "PATCH"].includes(entry.request.method) && request.postData() !== entry.request.postData?.text) {
+        return -1;
+    }
+    const matchingHeaders = Object.entries(entry.request.headers).filter(([name, value]) => {
+        return request.headers()[name] === value.value;
+    }).length;
+    return matchingHeaders;
+}
+
