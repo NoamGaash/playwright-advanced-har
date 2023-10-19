@@ -1,0 +1,11 @@
+{
+  "name": "playwright-advanced-har",
+  "version": "0.1.0",
+  "description": "Advanced HAR routing for Playwright",
+  "main": "index.ts",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "author": "noam.gaash@gmail.com",
+  "license": "MIT"
+}
