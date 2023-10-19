@@ -7,5 +7,9 @@
     "test": "playwright test"
   },
   "author": "noam.gaash@gmail.com",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.39.0",
+    "@types/node": "^20.8.7"
+  }
 }
