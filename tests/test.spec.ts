@@ -40,10 +40,7 @@ test("sanity with matcher", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/demo-todo-app.har", {
 		update: false,
 		updateContent: "embed",
-
-		matcher: (request, entry) => {
-			return 1;
-		},
+		matcher: () => 1,
 	});
 	await page.goto("https://demo.playwright.dev/todomvc");
 });
@@ -64,4 +61,26 @@ test("ignore 500 errors", async ({ page, advancedRouteFromHAR }) => {
 		expect(response.status()).toBeLessThan(500);
 	});
 	await page.goto("https://noam-gaash.co.il");
+	await page.getByText("Hello World").waitFor();
+});
+
+test("get 500 errors", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/first-has-error.har", {
+		update: false,
+		updateContent: "embed",
+
+		matcher: (request, entry) => {
+			if (entry.response.status !== 500) {
+				return -1;
+			}
+			return defaultMatcher(request, entry);
+		},
+	});
+	let gotError = false;
+	page.on("response", (response) => {
+		expect(response.status()).toBe(500);
+		gotError = true;
+	});
+	await page.goto("https://noam-gaash.co.il");
+	expect(gotError).toBe(true);
 });
