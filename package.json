@@ -1,6 +1,6 @@
 {
 	"name": "playwright-advanced-har",
-	"version": "0.2.1",
+	"version": "1.0.0",
 	"description": "Advanced HAR routing for Playwright",
 	"files": [
 		"lib/**/*"
