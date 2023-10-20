@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { test } from '..';
+import { test } from '../src/index';
 import fs from 'fs';
 
 test("sanity", async ({ page }) => {

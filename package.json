@@ -4,13 +4,15 @@
   "description": "Advanced HAR routing for Playwright",
   "main": "index.ts",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "build": "tsc"
   },
   "author": "noam.gaash@gmail.com",
   "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.39.0",
     "@types/har-format": "^1.2.14",
-    "@types/node": "^20.8.7"
+    "@types/node": "^20.8.7",
+    "typescript": "^5.2.2"
   }
 }
