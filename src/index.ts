@@ -112,7 +112,7 @@ function findEntry(
     .map((entry) => {
       return {
         entry,
-        score: defaultMatcher(request, entry),
+        score: (options.matcher ?? defaultMatcher)(request, entry),
       };
     })
     .filter((entry) => entry.score >= 0);
