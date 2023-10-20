@@ -3,11 +3,17 @@
   "version": "0.2.0",
   "description": "Advanced HAR routing for Playwright",
   "files": ["lib/**/*"],
+
   "scripts": {
     "test": "playwright test",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "lint": "tslint -p tsconfig.json"
+    "lint": "tslint -p tsconfig.json",
+    "version" : "npm run format && git add -A src",
+    "prepare" : "npm run build",
+    "prepublishOnly" : "npm test && npm run lint",
+    "preversion" : "npm run lint",
+    "postversion" : "git push && git push --tags"
   },
   "author": "noam.gaash@gmail.com",
   "license": "MIT",
