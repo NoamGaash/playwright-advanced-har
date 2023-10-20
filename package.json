@@ -5,7 +5,9 @@
   "main": "index.ts",
   "scripts": {
     "test": "playwright test",
-    "build": "tsc"
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json"
   },
   "author": "noam.gaash@gmail.com",
   "license": "MIT",
