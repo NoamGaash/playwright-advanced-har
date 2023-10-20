@@ -2,59 +2,18 @@ import { test as base, type Page, type Request } from "@playwright/test";
 import type { Har } from "har-format";
 import * as fs from "fs";
 
-export const test = base.extend({
-	page: async ({ page }, use) => {
+export const test = base.extend<{
+	advancedRouteFromHAR: (filename: string, options?: RouteFromHAROptions) => Promise<void>;
+}>({
+	advancedRouteFromHAR: async ({ page }, use) => {
 		const originalRouteFromHAR = page.routeFromHAR.bind(page);
-		page.routeFromHAR = async (
-			filename: string,
-			options?: {
-				/**
-				 * - If set to 'abort' any request not found in the HAR file will be aborted.
-				 * - If set to 'fallback' missing requests will be sent to the network.
-				 *
-				 * Defaults to abort.
-				 */
-				notFound?: "abort" | "fallback";
-
-				/**
-				 * If specified, updates the given HAR with the actual network information instead of serving from file. The file is
-				 * written to disk when
-				 * [browserContext.close()](https://playwright.dev/docs/api/class-browsercontext#browser-context-close) is called.
-				 */
-				update?: boolean;
-
-				/**
-				 * Optional setting to control resource content management. If `attach` is specified, resources are persisted as
-				 * separate files or entries in the ZIP archive. If `embed` is specified, content is stored inline the HAR file.
-				 */
-				updateContent?: "embed" | "attach";
-
-				/**
-				 * When set to `minimal`, only record information necessary for routing from HAR. This omits sizes, timing, page,
-				 * cookies, security and other types of HAR information that are not used when replaying from HAR. Defaults to `full`.
-				 */
-				updateMode?: "full" | "minimal";
-
-				/**
-				 * A glob pattern, regular expression or predicate to match the request URL. Only requests with URL matching the
-				 * pattern will be served from the HAR file. If not specified, all requests are served from the HAR file.
-				 */
-				url?: string | RegExp;
-				/**
-				 * a function that rates the match between a request and an entry in the HAR file.
-				 * The function receives the request and the HAR entry and returns a number.
-				 * if the number is negative, the entry is not used.
-				 * the entry with the highest score will be used to respond to the request.
-				 */
-				matcher?: (request: Request, entry: Har["log"]["entries"][0]) => number;
-			},
-		): Promise<void> => {
+		const advancedRouteFromHAR = async (filename: string, options?: RouteFromHAROptions): Promise<void> => {
 			if (options?.update) {
 				// on update, we want to record the HAR just like the original playwright method
 				return originalRouteFromHAR(filename, options);
 			} else {
 				const har = JSON.parse(await fs.promises.readFile(filename, { encoding: "utf8" }));
-				return advancedRouteFromHAR(
+				return serveFromHar(
 					har,
 					{
 						...options,
@@ -65,11 +24,11 @@ export const test = base.extend({
 			}
 		};
 
-		await use(page);
+		await use(advancedRouteFromHAR);
 	},
 });
 
-async function advancedRouteFromHAR(
+async function serveFromHar(
 	har: Har,
 	options: {
 		notFound?: "abort" | "fallback";
@@ -140,3 +99,45 @@ function scoreByHeaders(request: Request, entry: Har["log"]["entries"][0]): numb
 	}).length;
 	return matchingHeaders;
 }
+
+type RouteFromHAROptions = {
+	/**
+	 * - If set to 'abort' any request not found in the HAR file will be aborted.
+	 * - If set to 'fallback' missing requests will be sent to the network.
+	 *
+	 * Defaults to abort.
+	 */
+	notFound?: "abort" | "fallback";
+
+	/**
+	 * If specified, updates the given HAR with the actual network information instead of serving from file. The file is
+	 * written to disk when
+	 * [browserContext.close()](https://playwright.dev/docs/api/class-browsercontext#browser-context-close) is called.
+	 */
+	update?: boolean;
+
+	/**
+	 * Optional setting to control resource content management. If `attach` is specified, resources are persisted as
+	 * separate files or entries in the ZIP archive. If `embed` is specified, content is stored inline the HAR file.
+	 */
+	updateContent?: "embed" | "attach";
+
+	/**
+	 * When set to `minimal`, only record information necessary for routing from HAR. This omits sizes, timing, page,
+	 * cookies, security and other types of HAR information that are not used when replaying from HAR. Defaults to `full`.
+	 */
+	updateMode?: "full" | "minimal";
+
+	/**
+	 * A glob pattern, regular expression or predicate to match the request URL. Only requests with URL matching the
+	 * pattern will be served from the HAR file. If not specified, all requests are served from the HAR file.
+	 */
+	url?: string | RegExp;
+	/**
+	 * a function that rates the match between a request and an entry in the HAR file.
+	 * The function receives the request and the HAR entry and returns a number.
+	 * if the number is negative, the entry is not used.
+	 * the entry with the highest score will be used to respond to the request.
+	 */
+	matcher?: (request: Request, entry: Har["log"]["entries"][0]) => number;
+};

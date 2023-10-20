@@ -2,21 +2,21 @@ import { expect } from "@playwright/test";
 import { test } from "../src/index";
 import fs from "fs";
 
-test("sanity", async ({ page }) => {
-	await page.routeFromHAR("tests/har/demo-todo-app.har");
+test("sanity", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/demo-todo-app.har");
 	await page.goto("https://demo.playwright.dev/todomvc");
 });
 
-test("sanity with option", async ({ page }) => {
-	await page.routeFromHAR("tests/har/demo-todo-app.har", {
+test("sanity with option", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/demo-todo-app.har", {
 		update: false,
 		updateContent: "embed",
 	});
 	await page.goto("https://demo.playwright.dev/todomvc");
 });
 
-test("record", async ({ page }) => {
-	await page.routeFromHAR("tests/har/temp-record.har", {
+test("record", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/temp-record.har", {
 		update: true,
 		updateContent: "embed",
 	});
@@ -34,4 +34,16 @@ test("record", async ({ page }) => {
 	await new Promise((resolve) => setTimeout(resolve, 1000));
 	// clean up
 	await fs.promises.rm("tests/har/temp-record.har");
+});
+
+test("sanity with matcher", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/demo-todo-app.har", {
+		update: false,
+		updateContent: "embed",
+
+		matcher: (request, entry) => {
+			return 1;
+		},
+	});
+	await page.goto("https://demo.playwright.dev/todomvc");
 });
