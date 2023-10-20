@@ -1,6 +1,6 @@
 {
   "name": "playwright-advanced-har",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Advanced HAR routing for Playwright",
   "main": "index.ts",
   "scripts": {
