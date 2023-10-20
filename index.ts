@@ -38,13 +38,23 @@ export const test = base.extend({
              * pattern will be served from the HAR file. If not specified, all requests are served from the HAR file.
              */
             url?: string|RegExp;
+            /**
+             * a function that rates the match between a request and an entry in the HAR file.
+             * The function receives the request and the HAR entry and returns a number.
+             * if the number is negative, the entry is not used.
+             * the entry with the highest score will be used to respond to the request.
+             */
+            matcher?: (request: Request, entry: Har["log"]["entries"][0]) => number;
           }): Promise<void> => {
             if(options?.update){
                 // on update, we want to record the HAR just like the original playwright method
                 return originalRouteFromHAR(filename, options);
             } else {
                 const har = JSON.parse(await fs.promises.readFile(filename, { encoding: 'utf8' }));
-                return advancedRouteFromHAR(har, options ?? {}, page);
+                return advancedRouteFromHAR(har, {
+                    ...options,
+                    matcher: options?.matcher ?? defaultMatcher,
+                }, page);
             }
           }
 
@@ -57,6 +67,7 @@ export const test = base.extend({
 async function advancedRouteFromHAR(har: Har, options: {
     notFound?: "abort"|"fallback";
     url?: string|RegExp;
+    matcher: (request: Request, entry: Har["log"]["entries"][0]) => number;
 }, page: Page): Promise<void> {
     options.notFound ??= 'abort';
     options.url ??= /.*/;
@@ -73,7 +84,7 @@ async function advancedRouteFromHAR(har: Har, options: {
             } else {
                 route.fulfill({
                     status: entry.response.status,
-                    headers: entry.response.headers,
+                    headers: Object.fromEntries(entry.response.headers.map((header) => [header.name, header.value])),
                     body: entry.response.content.text,
                 });
             }
@@ -81,24 +92,26 @@ async function advancedRouteFromHAR(har: Har, options: {
     })
 }
 
-function findEntry(har: any, request: Request, options: {
-    url?: string|RegExp;
-}): any {
-    return  har.log.entries
+function findEntry(har: Har, request: Request, options: {
+    matcher: (request: Request, entry: Har["log"]["entries"][0]) => number;
+}){
+    const scoredEntries =  har.log.entries
         .map((entry) => {
             return {
                 entry,
                 score: defaultMatcher(request, entry),
             };
         }).filter((entry) => entry.score >= 0)
-        .sort((a, b) => b.score - a.score)
-        .map((entry) => entry.entry)
-        [0];
-
-    
+    if(scoredEntries.length === 0){
+        return null;
+    }
+    const bestEntry = scoredEntries.reduce((a, b) => {
+        return a.score > b.score ? a : b;
+    });
+    return bestEntry.entry;
 }
 
-function defaultMatcher(request: Request, entry: Har["log"]["entries"][0]): number {
+export function defaultMatcher(request: Request, entry: Har["log"]["entries"][0]): number {
     if (request.method() !== entry.request.method)
         return -1;
     if (!request.url().match(entry.request.url))
@@ -106,9 +119,12 @@ function defaultMatcher(request: Request, entry: Har["log"]["entries"][0]): numb
     if (["POST", "PUT", "PATCH"].includes(entry.request.method) && request.postData() !== entry.request.postData?.text) {
         return -1;
     }
+    return scoreByHeaders(request, entry);
+}
+
+function scoreByHeaders(request: Request, entry: Har["log"]["entries"][0]): number {
     const matchingHeaders = Object.entries(entry.request.headers).filter(([name, value]) => {
         return request.headers()[name] === value.value;
     }).length;
     return matchingHeaders;
 }
-
