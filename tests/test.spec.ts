@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { test } from "../src/index";
+import { defaultMatcher, test } from "../src/index";
 import fs from "fs";
 
 test("sanity", async ({ page, advancedRouteFromHAR }) => {
@@ -46,4 +46,22 @@ test("sanity with matcher", async ({ page, advancedRouteFromHAR }) => {
 		},
 	});
 	await page.goto("https://demo.playwright.dev/todomvc");
+});
+
+test("ignore 500 errors", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/first-has-error.har", {
+		update: false,
+		updateContent: "embed",
+
+		matcher: (request, entry) => {
+			if (entry.response.status === 500) {
+				return -1;
+			}
+			return defaultMatcher(request, entry);
+		},
+	});
+	page.on("response", (response) => {
+		expect(response.status()).toBeLessThan(500);
+	});
+	await page.goto("https://noam-gaash.co.il");
 });
