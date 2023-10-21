@@ -47,9 +47,6 @@ test("sanity with matcher", async ({ page, advancedRouteFromHAR }) => {
 
 test("ignore 500 errors", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/first-has-error.har", {
-		update: false,
-		updateContent: "embed",
-
 		matcher: (request, entry) => {
 			if (entry.response.status === 500) {
 				return -1;
@@ -66,9 +63,6 @@ test("ignore 500 errors", async ({ page, advancedRouteFromHAR }) => {
 
 test("get 500 errors", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/first-has-error.har", {
-		update: false,
-		updateContent: "embed",
-
 		matcher: (request, entry) => {
 			if (entry.response.status !== 500) {
 				return -1;
@@ -83,4 +77,18 @@ test("get 500 errors", async ({ page, advancedRouteFromHAR }) => {
 	});
 	await page.goto("https://noam-gaash.co.il");
 	expect(gotError).toBe(true);
+});
+
+test("largest number", async ({ page, advancedRouteFromHAR }) => {
+	// the file contains 3 responses - 42, 1234, 5
+	await advancedRouteFromHAR("tests/har/differentNumbers.har", {
+		matcher: (request, entry) => {
+			if (defaultMatcher(request, entry) >= 0) {
+				return Number(entry.response.content.text);
+			}
+			return -1;
+		},
+	});
+	await page.goto("https://noam-gaash.co.il");
+	await page.getByText("1234").waitFor();
 });
