@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { defaultMatcher, test } from "../src/index";
+import { defaultMatcher, test } from "../lib/index";
 import fs from "fs";
 
 test("sanity", async ({ page, advancedRouteFromHAR }) => {
