@@ -92,3 +92,71 @@ test("largest number", async ({ page, advancedRouteFromHAR }) => {
 	await page.goto("https://noam-gaash.co.il");
 	await page.getByText("1234").waitFor();
 });
+
+test("ignore port number", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/different-port.har", {
+		matcher: (request, entry) => {
+			const reqUrl = new URL(request.url());
+			const entryUrl = new URL(entry.request.url);
+			reqUrl.port = "80";
+			entryUrl.port = "80";
+			if (
+				reqUrl.toString() === entryUrl.toString() &&
+				request.method() === entry.request.method &&
+				request.postData() == entry.request.postData?.text
+			) {
+				return 1;
+			}
+			console.log("no match", reqUrl.toString(), entryUrl.toString());
+			return -1;
+		},
+	});
+	await page.goto("https://noam-gaash.co.il");
+	await page.getByText("from different port").waitFor();
+});
+
+test("ignore search params", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/different-search-params.har", {
+		matcher: (request, entry) => {
+			const reqUrl = new URL(request.url());
+			const entryUrl = new URL(entry.request.url);
+			reqUrl.search = "";
+			entryUrl.search = "";
+			if (
+				reqUrl.toString() === entryUrl.toString() &&
+				request.method() === entry.request.method &&
+				request.postData() == entry.request.postData?.text
+			) {
+				return 1;
+			}
+			console.log("no match", reqUrl.toString(), entryUrl.toString());
+			return -1;
+		},
+	});
+	await page.goto("https://noam-gaash.co.il?search=1");
+	await page.getByText("from different search params").waitFor();
+});
+
+test("pick arbirtrary response", async ({ page, advancedRouteFromHAR }) => {
+	// good when you're testing a long polling requests
+	await advancedRouteFromHAR("tests/har/differentNumbers.har", {
+		matcher: (request, entry) => {
+			if (defaultMatcher(request, entry) >= 0) {
+				return Math.random();
+			}
+			return -1;
+		},
+	});
+	await page.goto("https://noam-gaash.co.il");
+	let attempts = 0;
+	for (const waitfor of ["1234", "42", "5"]) {
+		while ((await page.getByText(waitfor).count()) === 0) {
+			attempts++;
+			await page.reload();
+			if (attempts > 100) {
+				// the probability of not getting the right response after 100 attempts is 2/3^100 = 3.8e-48
+				throw new Error("too many attempts");
+			}
+		}
+	}
+});
