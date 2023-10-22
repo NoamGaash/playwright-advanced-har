@@ -42,6 +42,8 @@ The number indicates how "good" the response is. Negative numbers (such as `-1`)
 
 ## examples
 
+ignoring port numbers:
+
 ```typescript
 test("ignore port number", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/different-port.har", {
@@ -65,6 +67,8 @@ test("ignore port number", async ({ page, advancedRouteFromHAR }) => {
 	await page.getByText("from different port").waitFor();
 });
 ```
+
+choosing arbitrary responses:
 
 ```typescript
 test("pick arbirtrary response", async ({ page, advancedRouteFromHAR }) => {
