@@ -3,11 +3,11 @@ import type { Har } from "har-format";
 import * as fs from "fs";
 
 export const test = base.extend<{
-	advancedRouteFromHAR: (filename: string, options?: RouteFromHAROptions) => Promise<void>;
+	advancedRouteFromHAR: AdvancedRouteFromHAR;
 }>({
 	advancedRouteFromHAR: async ({ page }, use) => {
 		const originalRouteFromHAR = page.routeFromHAR.bind(page);
-		const advancedRouteFromHAR = async (filename: string, options?: RouteFromHAROptions): Promise<void> => {
+		const advancedRouteFromHAR: AdvancedRouteFromHAR = async (filename, options) => {
 			if (options?.update) {
 				// on update, we want to record the HAR just like the original playwright method
 				return originalRouteFromHAR(filename, options);
@@ -84,21 +84,21 @@ function findEntry(
 	return bestEntry.entry;
 }
 
-export function defaultMatcher(request: Request, entry: Har["log"]["entries"][0]): number {
+const defaultMatcher: Matcher = (request, entry) => {
 	if (request.method() !== entry.request.method) return -1;
 	if (request.url() !== entry.request.url) return -1;
 	if (["POST", "PUT", "PATCH"].includes(entry.request.method) && request.postData() !== entry.request.postData?.text) {
 		return -1;
 	}
 	return scoreByHeaders(request, entry);
-}
+};
 
-function scoreByHeaders(request: Request, entry: Har["log"]["entries"][0]): number {
+const scoreByHeaders: Matcher = (request, entry) => {
 	const matchingHeaders = Object.entries(entry.request.headers).filter(([name, value]) => {
 		return request.headers()[name] === value.value;
 	}).length;
 	return matchingHeaders;
-}
+};
 
 async function parseContent(content?: Har["log"]["entries"][0]["response"]["content"]) {
 	if (!content || !content.text) return undefined;
@@ -150,3 +150,6 @@ type RouteFromHAROptions = {
 	 */
 	matcher?: (request: Request, entry: Har["log"]["entries"][0]) => number;
 };
+
+export type AdvancedRouteFromHAR = (filename: string, options?: RouteFromHAROptions) => Promise<void>;
+export type Matcher = (request: Request, entry: Har["log"]["entries"][0]) => number;
