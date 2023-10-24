@@ -86,7 +86,7 @@ function findEntry(
 
 export function defaultMatcher(request: Request, entry: Har["log"]["entries"][0]): number {
 	if (request.method() !== entry.request.method) return -1;
-	if (!request.url().match(entry.request.url)) return -1;
+	if (request.url() !== entry.request.url) return -1;
 	if (["POST", "PUT", "PATCH"].includes(entry.request.method) && request.postData() !== entry.request.postData?.text) {
 		return -1;
 	}
