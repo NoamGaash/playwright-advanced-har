@@ -45,7 +45,7 @@ async function serveFromHar(
 			const entry = findEntry(har, route.request(), options!);
 			if (entry === null) {
 				if (options?.notFound === "fallback") {
-					route.continue();
+					route.fallback();
 				} else {
 					route.abort();
 				}
