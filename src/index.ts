@@ -53,7 +53,7 @@ async function serveFromHar(
 				route.fulfill({
 					status: entry.response.status,
 					headers: Object.fromEntries(entry.response.headers.map((header) => [header.name, header.value])),
-					body: entry.response.content.text,
+					body: await parseContent(entry.response.content),
 				});
 			}
 		});
@@ -98,6 +98,15 @@ function scoreByHeaders(request: Request, entry: Har["log"]["entries"][0]): numb
 		return request.headers()[name] === value.value;
 	}).length;
 	return matchingHeaders;
+}
+
+async function parseContent(content?: Har["log"]["entries"][0]["response"]["content"]) {
+	if (!content || !content.text) return undefined;
+	if (content.encoding === "base64") {
+		return Buffer.from(content.text, "base64");
+	} else {
+		return content.text;
+	}
 }
 
 type RouteFromHAROptions = {
