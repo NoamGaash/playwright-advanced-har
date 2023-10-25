@@ -87,7 +87,7 @@ function findEntry(
 export const defaultMatcher: Matcher = (request, entry) => {
 	if (request.method() !== entry.request.method) return -1;
 	if (request.url() !== entry.request.url) return -1;
-	if (["POST", "PUT", "PATCH"].includes(entry.request.method)) {
+	if (["POST"].includes(entry.request.method)) {
 		const reqData = request.postData() ?? "{}";
 		const entryData = entry.request.postData?.text ?? "{}";
 		if (!jsonEquals(reqData, entryData)) return -1;
