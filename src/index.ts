@@ -94,8 +94,8 @@ export const defaultMatcher: Matcher = (request, entry) => {
 };
 
 const scoreByHeaders: Matcher = (request, entry) => {
-	const matchingHeaders = Object.entries(entry.request.headers).filter(([name, value]) => {
-		return request.headers()[name] === value.value;
+	const matchingHeaders = Object.entries(entry.request.headers).filter(([, value]) => {
+		return request.headers()[value.name] === value.value;
 	}).length;
 	return matchingHeaders;
 };
