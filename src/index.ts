@@ -79,7 +79,7 @@ function findEntry(
 		return null;
 	}
 	const bestEntry = scoredEntries.reduce((a, b) => {
-		return a.score > b.score ? a : b;
+		return a.score >= b.score ? a : b;
 	});
 	return bestEntry.entry;
 }
