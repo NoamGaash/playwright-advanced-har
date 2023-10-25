@@ -90,10 +90,22 @@ export const defaultMatcher: Matcher = (request, entry) => {
 	if (["POST", "PUT", "PATCH"].includes(entry.request.method)) {
 		const reqData = request.postData() ?? "{}";
 		const entryData = entry.request.postData?.text ?? "{}";
-		if (reqData !== entryData) return -1;
+		if (!jsonEquals(reqData, entryData)) return -1;
 	}
 	return scoreByHeaders(request, entry);
 };
+
+function jsonEquals(a: string, b: string) {
+	try {
+		a = JSON.parse(a);
+		b = JSON.parse(b);
+		a = JSON.stringify(a);
+		b = JSON.stringify(b);
+		return a === b;
+	} catch (e) {
+		return false;
+	}
+}
 
 const scoreByHeaders: Matcher = (request, entry) => {
 	const matchingHeaders = Object.entries(entry.request.headers).filter(([, value]) => {
