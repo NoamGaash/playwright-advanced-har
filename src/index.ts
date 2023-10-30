@@ -1,6 +1,11 @@
-import { test as base, type Page, type Request } from "@playwright/test";
-import type { Har } from "har-format";
+import { test as base } from "@playwright/test";
 import * as fs from "fs";
+import { AdvancedRouteFromHAR } from "./utils/types";
+import { serveFromHar } from "./utils/serveFromHar";
+import { defaultMatcher } from "./utils/matchers/defaultMatcher";
+export { Matcher, AdvancedRouteFromHAR } from "./utils/types";
+export { defaultMatcher } from "./utils/matchers/defaultMatcher";
+export { customMatcher } from "./utils/matchers/customMatcher";
 
 export const test = base.extend<{
 	advancedRouteFromHAR: AdvancedRouteFromHAR;
@@ -27,138 +32,3 @@ export const test = base.extend<{
 		await use(advancedRouteFromHAR);
 	},
 });
-
-async function serveFromHar(
-	har: Har,
-	options: {
-		notFound?: "abort" | "fallback";
-		url?: string | RegExp;
-		matcher: Matcher;
-	},
-	page: Page,
-): Promise<void> {
-	options.notFound ??= "abort";
-	options.url ??= /.*/;
-
-	test.step("advancedRouteFromHAR", async () => {
-		await page.route(options!.url!, async (route) => {
-			const entry = findEntry(har, route.request(), options!);
-			if (entry === null) {
-				if (options?.notFound === "fallback") {
-					route.fallback();
-				} else {
-					route.abort();
-				}
-			} else {
-				route.fulfill({
-					status: entry.response.status,
-					headers: Object.fromEntries(entry.response.headers.map((header) => [header.name, header.value])),
-					body: await parseContent(entry.response.content),
-				});
-			}
-		});
-	});
-}
-
-function findEntry(
-	har: Har,
-	request: Request,
-	options: {
-		matcher: Matcher;
-	},
-) {
-	// score each entry
-	const entriesWithScore = har.log.entries.map((entry) => ({ entry, score: options.matcher(request, entry) }));
-
-	// filter out entries with negative scores
-	const goodEntries = entriesWithScore.filter(({ score }) => score >= 0);
-
-	const bestEntry = goodEntries.reduce((a, b) => {
-		return a.score >= b.score ? a : b;
-	});
-	return bestEntry.entry;
-}
-
-export const defaultMatcher: Matcher = (request, entry) => {
-	if (request.method() !== entry.request.method) return -1;
-	if (request.url() !== entry.request.url) return -1;
-	if (["POST"].includes(entry.request.method)) {
-		const reqData = request.postData() ?? "{}";
-		const entryData = entry.request.postData?.text ?? "{}";
-		if (!jsonEquals(reqData, entryData)) return -1;
-	}
-	return scoreByHeaders(request, entry);
-};
-
-function jsonEquals(a: string, b: string) {
-	try {
-		a = JSON.parse(a);
-		b = JSON.parse(b);
-		a = JSON.stringify(a);
-		b = JSON.stringify(b);
-		return a === b;
-	} catch (e) {
-		return false;
-	}
-}
-
-const scoreByHeaders: Matcher = (request, entry) => {
-	const matchingHeaders = Object.entries(entry.request.headers).filter(([, value]) => {
-		return request.headers()[value.name] === value.value;
-	}).length;
-	return matchingHeaders;
-};
-
-async function parseContent(content?: Har["log"]["entries"][0]["response"]["content"]) {
-	if (!content || !content.text) return undefined;
-	if (content.encoding === "base64") {
-		return Buffer.from(content.text, "base64");
-	} else {
-		return content.text;
-	}
-}
-
-type RouteFromHAROptions = {
-	/**
-	 * - If set to 'abort' any request not found in the HAR file will be aborted.
-	 * - If set to 'fallback' missing requests will be sent to the network.
-	 *
-	 * Defaults to abort.
-	 */
-	notFound?: "abort" | "fallback";
-
-	/**
-	 * If specified, updates the given HAR with the actual network information instead of serving from file. The file is
-	 * written to disk when
-	 * [browserContext.close()](https://playwright.dev/docs/api/class-browsercontext#browser-context-close) is called.
-	 */
-	update?: boolean;
-
-	/**
-	 * Optional setting to control resource content management. If `attach` is specified, resources are persisted as
-	 * separate files or entries in the ZIP archive. If `embed` is specified, content is stored inline the HAR file.
-	 */
-	updateContent?: "embed" | "attach";
-
-	/**
-	 * When set to `minimal`, only record information necessary for routing from HAR. This omits sizes, timing, page,
-	 * cookies, security and other types of HAR information that are not used when replaying from HAR. Defaults to `full`.
-	 */
-	updateMode?: "full" | "minimal";
-
-	/**
-	 * A glob pattern, regular expression or predicate to match the request URL. Only requests with URL matching the
-	 * pattern will be served from the HAR file. If not specified, all requests are served from the HAR file.
-	 */
-	url?: string | RegExp;
-	/**
-	 * a function that rates the match between a request and an entry in the HAR file.
-	 * The function receives the request and the HAR entry and returns a number.
-	 * if the number is negative, the entry is not used.
-	 * the entry with the highest score will be used to respond to the request.
-	 */
-	matcher?: (request: Request, entry: Har["log"]["entries"][0]) => number;
-};
-
-export type AdvancedRouteFromHAR = (filename: string, options?: RouteFromHAROptions) => Promise<void>;
-export type Matcher = (request: Request, entry: Har["log"]["entries"][0]) => number;
