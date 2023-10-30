@@ -57,7 +57,7 @@ jobs:
 
             git add .
             git commit -m "Release: Version ${RELEASE_VERSION}."
-            git push origin main
+            git push -f origin main
           fi
 
       - name: Create Release
