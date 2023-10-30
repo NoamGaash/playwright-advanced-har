@@ -1,0 +1,20 @@
+name: Build and test the library
+run-name: ${{ github.actor }} is testing 🚀
+on: [push]
+jobs:
+  test-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          cache: "npm"
+      - name: install
+        run: |
+          npm ci
+      - name: build
+        run: npm run build
+      - name: test
+        run: |
+          npm test

@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - directory: /
+    package-ecosystem: npm
+    rebase-strategy: auto
+    reviewers:
+      - NoamGaash
+    commit-message:
+      prefix: "[dependabot]"
+    schedule:
+      interval: weekly
