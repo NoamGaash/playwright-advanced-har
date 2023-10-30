@@ -20,7 +20,7 @@ The `playwright-advanced-har` provides a playwright fixture called `advancedRout
 Here is an example of using a custom matcher to ignore `500` status code errors:
 
 ```typescript
-import { test, defaultMatcher } from "playwright-advanced-har";
+import { test, defaultMatcher, customMatcher } from "playwright-advanced-har";
 
 test("don't route responses that have errors", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/first-has-error.har", {
@@ -47,21 +47,13 @@ ignoring port numbers:
 ```typescript
 test("ignore port number", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/different-port.har", {
-		matcher: (request, entry) => {
-			const reqUrl = new URL(request.url());
-			const entryUrl = new URL(entry.request.url);
-			reqUrl.port = "80";
-			entryUrl.port = "80";
-			if (
-				reqUrl.toString() === entryUrl.toString() &&
-				request.method() === entry.request.method &&
-				request.postData() == entry.request.postData?.text
-			) {
-				return 1;
-			}
-			console.log("no match", reqUrl.toString(), entryUrl.toString());
-			return -1;
-		},
+		matcher: customMatcher({
+			urlComparator(a, b) {
+				a = a.replace(/:\d+/, "");
+				b = b.replace(/:\d+/, "");
+				return a === b;
+			},
+		}),
 	});
 	await page.goto("https://noam-gaash.co.il");
 	await page.getByText("from different port").waitFor();
@@ -73,13 +65,12 @@ choosing arbitrary responses:
 ```typescript
 test("pick arbirtrary response", async ({ page, advancedRouteFromHAR }) => {
 	// good when you're testing a long polling requests
-	await advancedRouteFromHAR("tests/har/long-polling.har", {
-		matcher: (request, entry) => {
-			if (defaultMatcher(request, entry) >= 0) {
+	await advancedRouteFromHAR("tests/har/differentNumbers.har", {
+		matcher: customMatcher({
+			scoring() {
 				return Math.random();
-			}
-			return -1;
-		},
+			},
+		}),
 	});
 	await page.goto("https://noam-gaash.co.il");
 	await page.getByText("1234").waitFor();
