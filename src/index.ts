@@ -33,7 +33,7 @@ async function serveFromHar(
 	options: {
 		notFound?: "abort" | "fallback";
 		url?: string | RegExp;
-		matcher: (request: Request, entry: Har["log"]["entries"][0]) => number;
+		matcher: Matcher;
 	},
 	page: Page,
 ): Promise<void> {
@@ -64,21 +64,16 @@ function findEntry(
 	har: Har,
 	request: Request,
 	options: {
-		matcher: (request: Request, entry: Har["log"]["entries"][0]) => number;
+		matcher: Matcher;
 	},
 ) {
-	const scoredEntries = har.log.entries
-		.map((entry) => {
-			return {
-				entry,
-				score: (options.matcher ?? defaultMatcher)(request, entry),
-			};
-		})
-		.filter((entry) => entry.score >= 0);
-	if (scoredEntries.length === 0) {
-		return null;
-	}
-	const bestEntry = scoredEntries.reduce((a, b) => {
+	// score each entry
+	const entriesWithScore = har.log.entries.map((entry) => ({ entry, score: options.matcher(request, entry) }));
+
+	// filter out entries with negative scores
+	const goodEntries = entriesWithScore.filter(({ score }) => score >= 0);
+
+	const bestEntry = goodEntries.reduce((a, b) => {
 		return a.score >= b.score ? a : b;
 	});
 	return bestEntry.entry;
