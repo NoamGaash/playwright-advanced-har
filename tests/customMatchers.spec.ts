@@ -1,6 +1,5 @@
 import { expect } from "@playwright/test";
 import { defaultMatcher, customMatcher, test } from "../lib/index";
-import fs from "fs";
 
 test("sanity", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/demo-todo-app.har", { matcher: customMatcher() });
