@@ -15,6 +15,12 @@ jobs:
           npm ci
       - name: build
         run: npm run build
+      - name: lint
+        run: |
+          npm run lint
+      - name: playwright install
+        run: |
+          npx playwright install
       - name: test
         run: |
           npm test

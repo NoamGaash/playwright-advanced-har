@@ -21,6 +21,8 @@ jobs:
           cache: "npm"
       - name: install
         run: npm ci
+      - name: install playwright
+        run: npx playwright install
       - name: Check Release Version
         run: |
           echo $old_status_code
