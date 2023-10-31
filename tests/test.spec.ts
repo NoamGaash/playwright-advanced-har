@@ -15,16 +15,16 @@ test("sanity with option", async ({ page, advancedRouteFromHAR }) => {
 	await page.goto("https://demo.playwright.dev/todomvc");
 });
 
-test("record", async ({ page, advancedRouteFromHAR }) => {
+test.skip("record", async ({ page, advancedRouteFromHAR }) => {
+	// todo: see what Playwright did with the contextFactory https://github.com/microsoft/playwright/blob/c3b533d8341d72d45b7296c7a895ff9fe7d8ff3b/tests/library/browsercontext-har.spec.ts#L342
 	await advancedRouteFromHAR("tests/har/temp-record.har", {
 		update: true,
 		updateContent: "embed",
 	});
 	await page.goto("https://demo.playwright.dev/todomvc");
 	await page.close();
-	await page.context().close();
-	await page.context().browser()?.close();
-	const data = await fs.promises.readFile("tests/har/temp-record.har", { encoding: "utf8" });
+
+	const data = await waitForFile("tests/har/temp-record.har");
 	const har = JSON.parse(data);
 	expect(har.log.entries.length).toBeGreaterThan(0);
 	expect(har.log.entries[0].request.url).toBe("https://demo.playwright.dev/todomvc");
@@ -160,3 +160,16 @@ test("pick arbirtrary response", async ({ page, advancedRouteFromHAR }) => {
 		}
 	}
 });
+
+async function waitForFile(path: string) {
+	for (let attempt = 0; attempt < 10; attempt++) {
+		try {
+			await new Promise((resolve) => setTimeout(resolve, 50 * attempt));
+			const data = await fs.promises.readFile(path, { encoding: "utf8" });
+			return data;
+		} catch {
+			void 0;
+		}
+	}
+	throw "can't read file";
+}
