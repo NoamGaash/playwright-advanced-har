@@ -1,6 +1,6 @@
 # 🎭 playwright-advanced-har
 
-[![npm version](https://img.shields.io/npm/v/playwright-advanced-har.svg)](https://www.npmjs.com/package/playwright-advanced-har)
+[![npm version](https://img.shields.io/npm/v/playwright-advanced-har.svg)](https://www.npmjs.com/package/playwright-advanced-har) [![Build and test the library](https://github.com/NoamGaash/playwright-advanced-har/actions/workflows/test.yml/badge.svg)](https://github.com/NoamGaash/playwright-advanced-har/actions/workflows/test.yml)
 
 Playwright-advanced-har is a library that allows various use-cases for network record-and-playback, including:
 
