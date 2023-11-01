@@ -49,8 +49,8 @@ function findEntry(
 
 	const bestEntry = goodEntries.reduce((a, b) => {
 		return a.score >= b.score ? a : b;
-	});
-	return bestEntry.entry;
+	}, goodEntries[0]);
+	return bestEntry?.entry ?? null;
 }
 
 async function parseContent(content?: Har["log"]["entries"][0]["response"]["content"]) {
