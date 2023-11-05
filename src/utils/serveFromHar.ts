@@ -1,11 +1,11 @@
 import { Har } from "har-format";
 import { Matcher } from "..";
-import { Page, Request, test } from "@playwright/test";
+import { Page, Request, Route, test } from "@playwright/test";
 
 export async function serveFromHar(
 	har: Har,
 	options: {
-		notFound?: "abort" | "fallback";
+		notFound?: "abort" | "fallback" | ((route: Route) => Promise<void>);
 		url?: string | RegExp;
 		matcher: Matcher;
 	},
@@ -14,24 +14,30 @@ export async function serveFromHar(
 	options.notFound ??= "abort";
 	options.url ??= /.*/;
 
-	test.step("advancedRouteFromHAR", async () => {
-		await page.route(options!.url!, async (route) => {
-			const entry = findEntry(har, route.request(), options!);
-			if (entry === null) {
-				if (options?.notFound === "fallback") {
-					route.fallback();
+	test.step(
+		"advancedRouteFromHAR",
+		async () => {
+			await page.route(options!.url!, async (route) => {
+				const entry = findEntry(har, route.request(), options!);
+				if (entry === null) {
+					if (options?.notFound === "fallback") {
+						route.fallback();
+					} else if (typeof options?.notFound === "function") {
+						await options?.notFound?.(route);
+					} else {
+						route.abort();
+					}
 				} else {
-					route.abort();
+					route.fulfill({
+						status: entry.response.status,
+						headers: Object.fromEntries(entry.response.headers.map((header) => [header.name, header.value])),
+						body: await parseContent(entry.response.content),
+					});
 				}
-			} else {
-				route.fulfill({
-					status: entry.response.status,
-					headers: Object.fromEntries(entry.response.headers.map((header) => [header.name, header.value])),
-					body: await parseContent(entry.response.content),
-				});
-			}
-		});
-	});
+			});
+		},
+		{ box: true },
+	);
 }
 
 function findEntry(
