@@ -1,5 +1,5 @@
-import { Request } from "@playwright/test";
-import { Entry } from "har-format";
+import type { Request, Route } from "@playwright/test";
+import type { Entry } from "har-format";
 
 export type Matcher = (request: Request, entry: Entry) => number;
 export type CustomMatcher = Matcher & {
@@ -12,10 +12,11 @@ export type RouteFromHAROptions = {
 	/**
 	 * - If set to 'abort' any request not found in the HAR file will be aborted.
 	 * - If set to 'fallback' missing requests will be sent to the network.
+	 * - If set to a function, it will be called for each request not found in the HAR file.
 	 *
 	 * Defaults to abort.
 	 */
-	notFound?: "abort" | "fallback";
+	notFound?: "abort" | "fallback" | ((route: Route) => Promise<void>);
 
 	/**
 	 * If specified, updates the given HAR with the actual network information instead of serving from file. The file is
