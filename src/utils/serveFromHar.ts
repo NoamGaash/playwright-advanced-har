@@ -1,6 +1,8 @@
-import { Har } from "har-format";
+import { Content, Har } from "har-format";
 import { Matcher } from "..";
 import { Page, Request, Route, test } from "@playwright/test";
+import path = require("path");
+import { promises } from "fs";
 
 export async function serveFromHar(
 	har: Har,
@@ -8,6 +10,7 @@ export async function serveFromHar(
 		notFound?: "abort" | "fallback" | ((route: Route) => Promise<void>);
 		url?: string | RegExp;
 		matcher: Matcher;
+		dirName: string;
 	},
 	page: Page,
 ): Promise<void> {
@@ -17,7 +20,7 @@ export async function serveFromHar(
 	test.step(
 		"advancedRouteFromHAR",
 		async () => {
-			await page.route(options!.url!, async (route) => {
+			await page.route(options.url ?? /.*/, async (route) => {
 				const entry = findEntry(har, route.request(), options!);
 				if (entry === null) {
 					if (options?.notFound === "fallback") {
@@ -31,7 +34,7 @@ export async function serveFromHar(
 					route.fulfill({
 						status: entry.response.status,
 						headers: Object.fromEntries(entry.response.headers.map((header) => [header.name, header.value])),
-						body: await parseContent(entry.response.content),
+						body: await parseContent(entry.response.content, options.dirName),
 					});
 				}
 			});
@@ -59,8 +62,15 @@ function findEntry(
 	return bestEntry?.entry ?? null;
 }
 
-async function parseContent(content?: Har["log"]["entries"][0]["response"]["content"]) {
-	if (!content || !content.text) return undefined;
+async function parseContent(content: Content & { _file?: string }, dirName: string = ".") {
+	if (!content) return undefined;
+	if (content._file && !content.text) {
+		const contentFilePath = path.join(dirName, content._file);
+		content.text = await promises.readFile(contentFilePath, {
+			encoding: "utf8",
+		});
+	}
+	if (!content.text) return undefined;
 	if (content.encoding === "base64") {
 		return Buffer.from(content.text, "base64");
 	} else {

@@ -15,6 +15,15 @@ test("sanity with option", async ({ page, advancedRouteFromHAR }) => {
 	await page.goto("https://demo.playwright.dev/todomvc");
 });
 
+test("sanity with content attached", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/demo-todo-app-attachments/attached.har", {
+		update: false,
+		updateContent: "attach",
+	});
+	await page.goto("https://www.example.com");
+	await page.getByRole("heading", { name: "Example Domain" }).waitFor();
+});
+
 test.skip("record", async ({ page, advancedRouteFromHAR }) => {
 	// todo: see what Playwright did with the contextFactory https://github.com/microsoft/playwright/blob/c3b533d8341d72d45b7296c7a895ff9fe7d8ff3b/tests/library/browsercontext-har.spec.ts#L342
 	await advancedRouteFromHAR("tests/har/temp-record.har", {
