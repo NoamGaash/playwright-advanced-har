@@ -3,7 +3,6 @@ import * as fs from "fs";
 import { AdvancedRouteFromHAR } from "./utils/types";
 import { serveFromHar } from "./utils/serveFromHar";
 import { defaultMatcher } from "./utils/matchers/defaultMatcher";
-import { Har } from "har-format";
 export { Matcher, AdvancedRouteFromHAR } from "./utils/types";
 export { defaultMatcher } from "./utils/matchers/defaultMatcher";
 export { customMatcher } from "./utils/matchers/customMatcher";
