@@ -3,9 +3,11 @@ import * as fs from "fs";
 import { AdvancedRouteFromHAR } from "./utils/types";
 import { serveFromHar } from "./utils/serveFromHar";
 import { defaultMatcher } from "./utils/matchers/defaultMatcher";
+import { Har } from "har-format";
 export { Matcher, AdvancedRouteFromHAR } from "./utils/types";
 export { defaultMatcher } from "./utils/matchers/defaultMatcher";
 export { customMatcher } from "./utils/matchers/customMatcher";
+import * as path from "path";
 
 export const test = base.extend<{
 	advancedRouteFromHAR: AdvancedRouteFromHAR;
@@ -27,6 +29,7 @@ export const test = base.extend<{
 					{
 						...options,
 						matcher: options?.matcher ?? defaultMatcher,
+						dirName: path.dirname(filename),
 					},
 					page,
 				);
