@@ -63,7 +63,7 @@ function findEntry(
 }
 
 async function parseContent(
-	content: Omit<Content & { _file?: string }, "text"> & { text: Buffer | string },
+	content: Omit<Content & { _file?: string }, "text"> & { text?: Buffer | string },
 	dirName: string = ".",
 ) {
 	if (!content) return undefined;
