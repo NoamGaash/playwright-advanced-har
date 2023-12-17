@@ -1,6 +1,6 @@
 name: Build and test the library
 run-name: ${{ github.actor }} is testing 🚀
-on: [push]
+on: [push, pull_request]
 jobs:
   test-package:
     runs-on: ubuntu-latest
