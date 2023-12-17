@@ -1,4 +1,4 @@
-import { Content, Har } from "har-format";
+import { Content, Entry, Har } from "har-format";
 import { Matcher } from "..";
 import { Page, Request, Route, test } from "@playwright/test";
 import path = require("path");
@@ -8,6 +8,7 @@ export async function serveFromHar(
 	har: Har,
 	options: {
 		notFound?: "abort" | "fallback" | ((route: Route) => Promise<void>);
+		found?: (entry: Readonly<Entry>) => Promise<Entry>;
 		url?: string | RegExp;
 		matcher: Matcher;
 		dirName: string;
@@ -20,17 +21,18 @@ export async function serveFromHar(
 	test.step(
 		"advancedRouteFromHAR",
 		async () => {
-			await page.route(options.url ?? /.*/, async (route) => {
-				const entry = findEntry(har, route.request(), options!);
+			await page.route(options.url!, async (route) => {
+				let entry = findEntry(har, route.request(), options!);
 				if (entry === null) {
-					if (options?.notFound === "fallback") {
+					if (options.notFound === "fallback") {
 						route.fallback();
-					} else if (typeof options?.notFound === "function") {
-						await options?.notFound?.(route);
+					} else if (typeof options.notFound === "function") {
+						await options.notFound(route);
 					} else {
 						route.abort();
 					}
 				} else {
+					entry = (await options.found?.(entry)) ?? entry;
 					route.fulfill({
 						status: entry.response.status,
 						headers: Object.fromEntries(entry.response.headers.map((header) => [header.name, header.value])),

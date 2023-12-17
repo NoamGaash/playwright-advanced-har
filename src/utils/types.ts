@@ -19,6 +19,14 @@ export type RouteFromHAROptions = {
 	notFound?: "abort" | "fallback" | ((route: Route) => Promise<void>);
 
 	/**
+	 * Called when a request is found in the HAR file, before the response is sent.
+	 * Can be used to modify the response.
+	 * If the function returns a promise, the response will be sent after the promise is resolved.
+	 * The value returned by the promise will be used to fulfill the request.
+	 */
+	found?: (entry: Readonly<Entry>) => Promise<Entry>;
+
+	/**
 	 * If specified, updates the given HAR with the actual network information instead of serving from file. The file is
 	 * written to disk when
 	 * [browserContext.close()](https://playwright.dev/docs/api/class-browsercontext#browser-context-close) is called.
