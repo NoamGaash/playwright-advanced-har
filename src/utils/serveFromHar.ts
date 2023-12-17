@@ -62,16 +62,17 @@ function findEntry(
 	return bestEntry?.entry ?? null;
 }
 
-async function parseContent(content: Content & { _file?: string }, dirName: string = ".") {
+async function parseContent(
+	content: Omit<Content & { _file?: string }, "text"> & { text: Buffer | string },
+	dirName: string = ".",
+) {
 	if (!content) return undefined;
 	if (content._file && !content.text) {
 		const contentFilePath = path.join(dirName, content._file);
-		content.text = await promises.readFile(contentFilePath, {
-			encoding: "utf8",
-		});
+		content.text = await promises.readFile(contentFilePath);
 	}
 	if (!content.text) return undefined;
-	if (content.encoding === "base64") {
+	if (content.encoding === "base64" && typeof content.text === "string") {
 		return Buffer.from(content.text, "base64");
 	} else {
 		return content.text;
