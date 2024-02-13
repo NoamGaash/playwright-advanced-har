@@ -1,10 +1,14 @@
 import type { Request, Route } from "@playwright/test";
 import type { Entry } from "har-format";
+import type { findEntry } from "./serveFromHar";
 
 export type Matcher = (request: Request, entry: Entry) => number;
-export type CustomMatcher = Matcher & {
-	then: (matcher: Matcher) => CustomMatcher;
-};
+
+export type AdvancedMatcher = {
+	findEntry?: typeof findEntry;
+	matchFunction?: Matcher;
+	postProcess?: (entry: Entry, route?: Route) => Entry;
+}
 
 export type Method = "POST" | "GET" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS" | "CONNECT" | "TRACE";
 
@@ -48,7 +52,7 @@ export type RouteFromHAROptions = {
 	 * if the number is negative, the entry is not used.
 	 * the entry with the highest score will be used to respond to the request.
 	 */
-	matcher?: Matcher;
+	matcher?: Matcher | AdvancedMatcher;
 };
 
 export type AdvancedRouteFromHAR = (filename: string, options?: RouteFromHAROptions) => Promise<void>;

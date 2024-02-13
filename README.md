@@ -77,6 +77,27 @@ test("pick arbirtrary response", async ({ page, advancedRouteFromHAR }) => {
 });
 ```
 
+apply post-proccessing on the chosen HAR entry:
+
+```typescript
+test("get the largest number... squared!", async ({ page, advancedRouteFromHAR }) => {
+	// the file contains 3 responses - 42, 1234, 5
+	await advancedRouteFromHAR("tests/har/differentNumbers.har", {
+		matcher: {
+			postProcess(entry) {
+				entry.response.content.text = (parseInt(entry.response.content.text || "0") ** 2).toString();
+				return entry;
+			},
+			matchFunction: customMatcher({
+				scoring: (request, entry) => parseInt(entry.response.content.text || "0"),
+			}),
+		}
+	});
+	await page.goto("https://noam-gaash.co.il");
+	await page.getByText((1234**2).toString()).waitFor();
+});
+```
+
 for more examples, please see our `tests` directory
 
 # Contribution
