@@ -22,10 +22,10 @@ export async function serveFromHar(
 		"advancedRouteFromHAR",
 		async () => {
 			await page.route(options.url ?? /.*/, async (route) => {
-				let entry = typeof options.matcher === 'function' ?
+				let entry = typeof options.matcher === "function" ?
 					findEntry(har, route.request(), options!.matcher) :
 					(options.matcher.findEntry ?? findEntry)(har, route.request(), options!.matcher.matchFunction);
-				if('postProcess' in options.matcher && options.matcher.postProcess) {
+				if("postProcess" in options.matcher && options.matcher.postProcess) {
 					entry = options.matcher.postProcess(entry, route);
 				}
 				if (entry === null) {

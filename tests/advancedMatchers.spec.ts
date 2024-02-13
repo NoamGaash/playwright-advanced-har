@@ -4,7 +4,7 @@ test("largest number squared - using explicit findEntry", async ({ page, advance
 	// the file contains 3 responses - 42, 1234, 5
 	await advancedRouteFromHAR("tests/har/differentNumbers.har", {
 		matcher: {
-			findEntry(har, request) {
+			findEntry(har) {
 				const chosen = har.log.entries.reduce((max, entry) => {
 					const number = parseInt(entry.response.content.text || "0");
 					const maxNumber = parseInt(max.response.content.text || "0");
@@ -19,7 +19,7 @@ test("largest number squared - using explicit findEntry", async ({ page, advance
 							text: (parseInt(chosen.response.content.text || "0") ** 2).toString(),
 						},
 					},
-				}
+				};
 			}
 		}
 	});
