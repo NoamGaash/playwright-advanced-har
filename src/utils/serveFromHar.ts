@@ -1,15 +1,16 @@
 import { Content, Har } from "har-format";
-import { Matcher } from "..";
-import { Page, Request, Route, test } from "@playwright/test";
+import { type Matcher, defaultMatcher } from "..";
+import { type Page, type Request, type Route, test } from "@playwright/test";
 import path = require("path");
 import { promises } from "fs";
+import { AdvancedMatcher } from "./types";
 
 export async function serveFromHar(
 	har: Har,
 	options: {
 		notFound?: "abort" | "fallback" | ((route: Route) => Promise<void>);
 		url?: string | RegExp;
-		matcher: Matcher;
+		matcher: Matcher | AdvancedMatcher;
 		dirName: string;
 	},
 	page: Page,
@@ -21,7 +22,12 @@ export async function serveFromHar(
 		"advancedRouteFromHAR",
 		async () => {
 			await page.route(options.url ?? /.*/, async (route) => {
-				const entry = findEntry(har, route.request(), options!);
+				let entry = typeof options.matcher === "function" ?
+					findEntry(har, route.request(), options!.matcher) :
+					(options.matcher.findEntry ?? findEntry)(har, route.request(), options!.matcher.matchFunction);
+				if("postProcess" in options.matcher && options.matcher.postProcess) {
+					entry = options.matcher.postProcess(entry, route);
+				}
 				if (entry === null) {
 					if (options?.notFound === "fallback") {
 						route.fallback();
@@ -43,15 +49,13 @@ export async function serveFromHar(
 	);
 }
 
-function findEntry(
+export function findEntry(
 	har: Har,
 	request: Request,
-	options: {
-		matcher: Matcher;
-	},
+	matcher: Matcher = defaultMatcher
 ) {
 	// score each entry
-	const entriesWithScore = har.log.entries.map((entry) => ({ entry, score: options.matcher(request, entry) }));
+	const entriesWithScore = har.log.entries.map((entry) => ({ entry, score: matcher(request, entry) }));
 
 	// filter out entries with negative scores
 	const goodEntries = entriesWithScore.filter(({ score }) => score >= 0);
