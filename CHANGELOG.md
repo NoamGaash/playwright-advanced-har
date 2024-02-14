@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.2.2...v1.3.0) (2024-02-14)
+
+
+### Features
+
+* advanced matchers with post-process option ([#11](https://github.com/NoamGaash/playwright-advanced-har/issues/11)) ([b339ad8](https://github.com/NoamGaash/playwright-advanced-har/commit/b339ad85d9ace38376d3617477cf739000f06c60))
+
 ## [1.2.2](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.2.1...v1.2.2) (2023-12-17)
 
 
