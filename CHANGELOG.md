@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.3.0...v1.3.1) (2024-02-20)
+
+
+### Bug Fixes
+
+* postprocess function will work with `update: true` ([#15](https://github.com/NoamGaash/playwright-advanced-har/issues/15)) ([b5d1079](https://github.com/NoamGaash/playwright-advanced-har/commit/b5d10798403da6f26b3269aa85c0f5b02bbe022b))
+
 ## [1.3.0](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.2.2...v1.3.0) (2024-02-14)
 
 
