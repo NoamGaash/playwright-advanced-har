@@ -66,7 +66,7 @@ export function findEntry(
 	return bestEntry?.entry ?? null;
 }
 
-async function parseContent(
+export async function parseContent(
 	content: Omit<Content & { _file?: string }, "text"> & { text?: Buffer | string },
 	dirName: string = ".",
 ) {

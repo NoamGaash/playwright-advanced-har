@@ -24,25 +24,13 @@ test("sanity with content attached", async ({ page, advancedRouteFromHAR }) => {
 	await page.getByRole("heading", { name: "Example Domain" }).waitFor();
 });
 
-test.skip("record", async ({ page, advancedRouteFromHAR }) => {
-	// todo: see what Playwright did with the contextFactory https://github.com/microsoft/playwright/blob/c3b533d8341d72d45b7296c7a895ff9fe7d8ff3b/tests/library/browsercontext-har.spec.ts#L342
-	await advancedRouteFromHAR("tests/har/temp-record.har", {
-		update: true,
-		updateContent: "embed",
-	});
-	await page.goto("https://demo.playwright.dev/todomvc");
-	await page.close();
-
-	const data = await waitForFile("tests/har/temp-record.har");
+test("validate recorded har", async ({}) => {
+	const data = await waitForFile("tests/har/temp/demo.playwright.dev.har");
 	const har = JSON.parse(data);
 	expect(har.log.entries.length).toBeGreaterThan(0);
 	expect(har.log.entries[0].request.url).toBe("https://demo.playwright.dev/todomvc");
 	expect(har.log.entries[0].response.status).toBeGreaterThanOrEqual(200);
 	expect(har.log.entries[0].response.status).toBeLessThan(400);
-
-	await new Promise((resolve) => setTimeout(resolve, 1000));
-	// clean up
-	await fs.promises.rm("tests/har/temp-record.har");
 });
 
 test("sanity with matcher", async ({ page, advancedRouteFromHAR }) => {
@@ -182,3 +170,61 @@ async function waitForFile(path: string) {
 	}
 	throw "can't read file";
 }
+
+test("test a joke recording with postprocess", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/temp/joke-postprocess.har", {
+		update: true,
+		updateContent: "embed",
+		matcher: {
+			postProcess(entry) {
+				entry.response.content.text = "This is a joke";
+				return entry;
+			}
+		}
+	});
+	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
+	await page.waitForSelector("text=This is a joke");
+	await page.close();
+});
+
+test("test a joke recording with different postprocess that was not recorded", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/temp/joke-postprocess.har", {
+		update: true,
+		updateContent: "embed",
+		matcher: {
+			postProcess(entry) {
+				entry.response.content.text = "This is not a joke";
+				return entry;
+			}
+		}
+	});
+	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
+	await page.waitForSelector("text=This is not a joke");
+	await page.close();
+});
+
+test("test a postprocess that change only part of the output", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/temp/joke-postprocess.har", {
+		update: true,
+		updateContent: "embed",
+		matcher: {
+			postProcess(entry) {
+				const json = JSON.parse(entry.response.content.text ?? "{}");
+				console.log(json);
+				console.log(entry.response.content.text);
+				json.flags.custom = true;
+				entry.response.content.text = JSON.stringify(json);
+				return entry;
+			}
+		}
+	});
+	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
+	const flags = await page.evaluate(() => {
+		return JSON.parse(document.body.textContent ?? "{}").flags;
+	});
+	expect(flags.custom).toBe(true);
+	expect(flags.nsfw).toBe(false);
+	await page.close();
+});
+
+
