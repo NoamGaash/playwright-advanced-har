@@ -15,7 +15,7 @@ export const test = base.extend<{
 		const originalRouteFromHAR = page.routeFromHAR.bind(page);
 		const advancedRouteFromHAR: AdvancedRouteFromHAR = async (filename, options) => {
 			if (options?.update) {
-				const {matcher} = options
+				const {matcher} = options;
 				if (matcher && "postProcess" in matcher) {
 					await page.route(options.url || /.*/, async (route, request) => {
 						const resp = await route.fetch();
@@ -26,7 +26,7 @@ export const test = base.extend<{
 								headers: Object.fromEntries(response.headers.map((header) => [header.name, header.value])),
 								body: await parseContent(response.content, path.dirname(filename)),
 							});
-					})
+					});
 				}
 				// on update, we want to record the HAR just like the original playwright method
 				return originalRouteFromHAR(filename, {

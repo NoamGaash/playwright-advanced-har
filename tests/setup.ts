@@ -1,4 +1,3 @@
-import { describe } from "node:test";
 import { test } from "../lib/index";
 
 test("record", async ({ page, advancedRouteFromHAR }) => {
@@ -17,7 +16,7 @@ test("record test with a joke", async ({ page, advancedRouteFromHAR }) => {
 	});
 	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
 	await page.close();
-})
+});
 
 test("record test with a joke and postprocess", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/temp/joke-postprocess.har", {
@@ -33,4 +32,4 @@ test("record test with a joke and postprocess", async ({ page, advancedRouteFrom
 	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
 	await page.waitForSelector("text=This is a joke");
 	await page.close();
-})
+});

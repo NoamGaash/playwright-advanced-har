@@ -185,7 +185,7 @@ test("test a joke recording with postprocess", async ({ page, advancedRouteFromH
 	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
 	await page.waitForSelector("text=This is a joke");
 	await page.close();
-})
+});
 
 test("test a joke recording with different postprocess that was not recorded", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/temp/joke-postprocess.har", {
@@ -201,7 +201,7 @@ test("test a joke recording with different postprocess that was not recorded", a
 	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
 	await page.waitForSelector("text=This is not a joke");
 	await page.close();
-})
+});
 
 test("test a postprocess that change only part of the output", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/temp/joke-postprocess.har", {
@@ -225,6 +225,6 @@ test("test a postprocess that change only part of the output", async ({ page, ad
 	expect(flags.custom).toBe(true);
 	expect(flags.nsfw).toBe(false);
 	await page.close();
-})
+});
 
 
