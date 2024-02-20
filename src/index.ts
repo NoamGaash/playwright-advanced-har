@@ -1,7 +1,7 @@
 import { test as base } from "@playwright/test";
 import * as fs from "fs";
-import { AdvancedRouteFromHAR } from "./utils/types";
-import { serveFromHar } from "./utils/serveFromHar";
+import { AdvancedRouteFromHAR, requestResponseToEntry } from "./utils/types";
+import { parseContent, serveFromHar } from "./utils/serveFromHar";
 import { defaultMatcher } from "./utils/matchers/defaultMatcher";
 export { Matcher, AdvancedRouteFromHAR } from "./utils/types";
 export { defaultMatcher } from "./utils/matchers/defaultMatcher";
@@ -15,6 +15,19 @@ export const test = base.extend<{
 		const originalRouteFromHAR = page.routeFromHAR.bind(page);
 		const advancedRouteFromHAR: AdvancedRouteFromHAR = async (filename, options) => {
 			if (options?.update) {
+				const {matcher} = options
+				if (matcher && "postProcess" in matcher) {
+					await page.route(options.url || /.*/, async (route, request) => {
+						const resp = await route.fetch();
+						const response = matcher.postProcess?.(await requestResponseToEntry(request, resp, await page.context().cookies())).response;
+						if(response)
+							route.fulfill({
+								status: response.status,
+								headers: Object.fromEntries(response.headers.map((header) => [header.name, header.value])),
+								body: await parseContent(response.content, path.dirname(filename)),
+							});
+					})
+				}
 				// on update, we want to record the HAR just like the original playwright method
 				return originalRouteFromHAR(filename, {
 					update: true,
