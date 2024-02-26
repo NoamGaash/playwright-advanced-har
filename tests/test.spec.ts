@@ -24,6 +24,15 @@ test("sanity with content attached", async ({ page, advancedRouteFromHAR }) => {
 	await page.getByRole("heading", { name: "Example Domain" }).waitFor();
 });
 
+test("only css was recorded", async () => {
+	const fileContent = await waitForFile("tests/har/temp/demo.playwright.dev.css.har");
+	const har = JSON.parse(fileContent);
+	expect(har.log.entries.length).toBeGreaterThan(0);
+	for (const entry of har.log.entries) {
+		expect(entry.request.url).toMatch(/.*\.css/);
+	}
+});
+
 test("validate recorded har", async ({}) => {
 	const data = await waitForFile("tests/har/temp/demo.playwright.dev.har");
 	const har = JSON.parse(data);
@@ -210,8 +219,6 @@ test("test a postprocess that change only part of the output", async ({ page, ad
 		matcher: {
 			postProcess(entry) {
 				const json = JSON.parse(entry.response.content.text ?? "{}");
-				console.log(json);
-				console.log(entry.response.content.text);
 				json.flags.custom = true;
 				entry.response.content.text = JSON.stringify(json);
 				return entry;
