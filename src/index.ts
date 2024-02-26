@@ -30,6 +30,7 @@ export const test = base.extend<{
 				}
 				// on update, we want to record the HAR just like the original playwright method
 				return originalRouteFromHAR(filename, {
+					url: options.url,
 					update: true,
 					updateContent: options?.updateContent,
 					updateMode: options?.updateMode,
