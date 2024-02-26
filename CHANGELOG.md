@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.3.1...v1.3.2) (2024-02-26)
+
+
+### Bug Fixes
+
+* don't record unnecessary URLs ([#17](https://github.com/NoamGaash/playwright-advanced-har/issues/17)) ([af069d4](https://github.com/NoamGaash/playwright-advanced-har/commit/af069d4765da3c56d09149df9127990f6f8e12c1))
+
 ## [1.3.1](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.3.0...v1.3.1) (2024-02-20)
 
 
