@@ -33,3 +33,11 @@ test("record test with a joke and postprocess", async ({ page, advancedRouteFrom
 	await page.waitForSelector("text=This is a joke");
 	await page.close();
 });
+
+
+test("record not embedded", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/temp/not-embedded.har", {
+		update: true,
+	});
+	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
+});

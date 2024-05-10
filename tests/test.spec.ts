@@ -171,6 +171,16 @@ async function waitForFile(path: string) {
 	throw "can't read file";
 }
 
+test("attached content", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/temp/not-embedded.har", {
+		matcher: (request, entry) => {
+			expect(entry.response.content.text).toBeTruthy();
+			return defaultMatcher(request, entry);
+		}
+	});
+	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
+});
+
 test("test a joke recording with postprocess", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/temp/joke-postprocess.har", {
 		update: true,
