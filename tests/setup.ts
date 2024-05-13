@@ -35,7 +35,7 @@ test("record test with a joke and postprocess", async ({ page, advancedRouteFrom
 });
 
 
-test("record not embedded", async ({ page, advancedRouteFromHAR }) => {
+test("record attached (not embedded)", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/temp/not-embedded.har", {
 		update: true,
 	});

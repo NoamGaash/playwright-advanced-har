@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import { defaultMatcher, test } from "../lib/index";
 import fs from "fs";
+import { parseContent } from "../lib/index";
 
 test("sanity", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/demo-todo-app.har");
@@ -104,7 +105,6 @@ test("ignore port number", async ({ page, advancedRouteFromHAR }) => {
 			) {
 				return 1;
 			}
-			console.log("no match", reqUrl.toString(), entryUrl.toString());
 			return -1;
 		},
 	});
@@ -126,7 +126,6 @@ test("ignore search params", async ({ page, advancedRouteFromHAR }) => {
 			) {
 				return 1;
 			}
-			console.log("no match", reqUrl.toString(), entryUrl.toString());
 			return -1;
 		},
 	});
@@ -173,8 +172,13 @@ async function waitForFile(path: string) {
 
 test("attached content", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/temp/not-embedded.har", {
-		matcher: (request, entry) => {
-			expect(entry.response.content.text).toBeTruthy();
+		matcher: async (request, entry) => {
+			let content = await parseContent(entry.response.content, "tests/har/temp");
+			if(typeof content === "object")
+				content = content.toString();
+		
+			expect(content).toBeTruthy();
+			expect(content).toContain("category");
 			return defaultMatcher(request, entry);
 		}
 	});
@@ -220,8 +224,6 @@ test("test a postprocess that change only part of the output", async ({ page, ad
 		matcher: {
 			postProcess(entry) {
 				const json = JSON.parse(entry.response.content.text ?? "{}");
-				console.log(json);
-				console.log(entry.response.content.text);
 				json.flags.custom = true;
 				entry.response.content.text = JSON.stringify(json);
 				return entry;

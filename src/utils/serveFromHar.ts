@@ -23,8 +23,8 @@ export async function serveFromHar(
 		async () => {
 			await page.route(options.url ?? /.*/, async (route) => {
 				let entry = typeof options.matcher === "function" ?
-					findEntry(har, route.request(), options!.matcher) :
-					(options.matcher.findEntry ?? findEntry)(har, route.request(), options!.matcher.matchFunction);
+					await findEntry(har, route.request(), options!.matcher) :
+					await (options.matcher.findEntry ?? findEntry)(har, route.request(), options!.matcher.matchFunction);
 				if("postProcess" in options.matcher && options.matcher.postProcess) {
 					entry = options.matcher.postProcess(entry, route);
 				}
@@ -49,13 +49,13 @@ export async function serveFromHar(
 	);
 }
 
-export function findEntry(
+export async function findEntry(
 	har: Har,
 	request: Request,
 	matcher: Matcher = defaultMatcher
 ) {
 	// score each entry
-	const entriesWithScore = har.log.entries.map((entry) => ({ entry, score: matcher(request, entry) }));
+	const entriesWithScore = await Promise.all(har.log.entries.map(async (entry) => ({ entry, score: await matcher(request, entry) })));
 
 	// filter out entries with negative scores
 	const goodEntries = entriesWithScore.filter(({ score }) => score >= 0);
