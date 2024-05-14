@@ -6,6 +6,7 @@ import { defaultMatcher } from "./utils/matchers/defaultMatcher";
 export { Matcher, AdvancedRouteFromHAR } from "./utils/types";
 export { defaultMatcher } from "./utils/matchers/defaultMatcher";
 export { customMatcher } from "./utils/matchers/customMatcher";
+export { parseContent } from "./utils/serveFromHar";
 import * as path from "path";
 
 export const test = base.extend<{

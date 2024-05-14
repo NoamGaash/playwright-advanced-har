@@ -2,7 +2,7 @@ import type { APIResponse, Request, Route, Cookie } from "@playwright/test";
 import type { Entry } from "har-format";
 import type { findEntry } from "./serveFromHar";
 
-export type Matcher = (request: Request, entry: Entry) => number;
+export type Matcher = (request: Request, entry: Entry) => number | Promise<number>;
 
 export type AdvancedMatcher = {
 	findEntry?: typeof findEntry;
