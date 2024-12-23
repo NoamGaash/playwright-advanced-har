@@ -23,18 +23,19 @@ export default defineConfig({
 		{
 			name: "setup",
 			use: { ...devices["Desktop Chrome"] },
-			testMatch: /setup.ts/,
+			testMatch: /tests\/setup\.spec\.ts/,
 		},
 		{
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"] },
 			dependencies: ["setup"],
 			teardown: "delete temp har files",
+			testMatch: /tests\/(?!setup|teardown).+\.spec\.ts/,
 		},
 		{
 			name: "delete temp har files",
 			use: { ...devices["Desktop Chrome"] },
-			testMatch: /teardown.ts/,
+			testMatch: /tests\/teardown\.spec\.ts/,
 		}
 	],
 });
