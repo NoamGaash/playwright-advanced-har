@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.3](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.3.2...v1.3.3) (2024-12-23)
+
+
+### Bug Fixes
+
+* filter out API requests ([#47](https://github.com/NoamGaash/playwright-advanced-har/issues/47)) ([0782b39](https://github.com/NoamGaash/playwright-advanced-har/commit/0782b391cb135bdc9409a3a77f3f4917bd60d1e4))
+
 ## [1.3.2](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.3.1...v1.3.2) (2024-02-26)
 
 
