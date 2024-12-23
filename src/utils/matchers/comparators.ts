@@ -7,7 +7,7 @@ export function jsonEquals(a: string, b: string) {
 		a = JSON.stringify(a);
 		b = JSON.stringify(b);
 		return a === b;
-	} catch (e) {
+	} catch {
 		return false;
 	}
 }

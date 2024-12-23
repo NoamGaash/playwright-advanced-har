@@ -1,7 +1,7 @@
 import { Content, Har } from "har-format";
 import { type Matcher, defaultMatcher } from "..";
 import { type Page, type Request, type Route, test } from "@playwright/test";
-import path = require("path");
+import * as path from "path";
 import { promises } from "fs";
 import { AdvancedMatcher } from "./types";
 
