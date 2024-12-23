@@ -55,7 +55,10 @@ export async function findEntry(
 	matcher: Matcher = defaultMatcher
 ) {
 	// score each entry
-	const entriesWithScore = await Promise.all(har.log.entries.map(async (entry) => ({ entry, score: await matcher(request, entry) })));
+	const entriesWithScore = await Promise.all(har.log.entries
+		.filter(entry => !entry._apiRequest)
+		.map(async (entry) => ({ entry, score: await matcher(request, entry) }))
+	);
 
 	// filter out entries with negative scores
 	const goodEntries = entriesWithScore.filter(({ score }) => score >= 0);

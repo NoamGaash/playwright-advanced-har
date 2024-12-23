@@ -248,4 +248,12 @@ test("test a postprocess that change only part of the output", async ({ page, ad
 	await page.close();
 });
 
+test("sensitive data", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/temp/no-sensitive-data.har");
+	await page.goto("https://dummyjson.com/http/200/top%20secret");
+	await expect(page.locator("text=public")).toBeVisible();
+	await expect(page.locator("text=top secret")).not.toBeVisible();
+	await page.close();
+});
+
 
