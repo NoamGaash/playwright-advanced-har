@@ -256,4 +256,9 @@ test("sensitive data", async ({ page, advancedRouteFromHAR }) => {
 	await page.close();
 });
 
+// TODO: if minimal mode won't save api requests, this test will pass.
+test.fail("sensitive data file should not contain sensitive data", async () => {
+	const data = await waitForFile("tests/har/temp/no-sensitive-data.har");
+	expect(data).not.toContain("top secret");
+});
 
