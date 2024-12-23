@@ -48,10 +48,25 @@ test("record test with a joke and postprocess", async ({ page, advancedRouteFrom
 	await page.close();
 });
 
-
 test("record attached (not embedded)", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/temp/not-embedded.har", {
 		update: true,
 	});
 	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
+});
+
+test("record without sensitive data", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/temp/no-sensitive-data.har", {
+		update: true,
+		updateContent: "embed",
+		updateMode: "minimal",
+		matcher: {
+			postProcess(entry) {
+				entry.response.content.text = entry.response.content.text?.replace("top secret", "public");
+				return entry;
+			}
+		},
+	});
+
+	await page.goto("https://dummyjson.com/http/200/top%20secret");
 });

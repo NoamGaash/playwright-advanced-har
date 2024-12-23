@@ -248,4 +248,17 @@ test("test a postprocess that change only part of the output", async ({ page, ad
 	await page.close();
 });
 
+test("sensitive data", async ({ page, advancedRouteFromHAR }) => {
+	await advancedRouteFromHAR("tests/har/temp/no-sensitive-data.har");
+	await page.goto("https://dummyjson.com/http/200/top%20secret");
+	await expect(page.locator("text=public")).toBeVisible();
+	await expect(page.locator("text=top secret")).not.toBeVisible();
+	await page.close();
+});
+
+// TODO: if minimal mode won't save api requests, this test will pass.
+test.fail("sensitive data file should not contain sensitive data", async () => {
+	const data = await waitForFile("tests/har/temp/no-sensitive-data.har");
+	expect(data).not.toContain("top secret");
+});
 
