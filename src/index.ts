@@ -1,4 +1,4 @@
-import { test as base, Page } from "@playwright/test";
+import { test as base, type Page } from "@playwright/test";
 import * as fs from "fs";
 import { AdvancedRouteFromHAR, requestResponseToEntry } from "./utils/types";
 import { parseContent, serveFromHar } from "./utils/serveFromHar";
