@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.3.3...v1.4.0) (2025-05-20)
+
+
+### Features
+
+* export advancedRouteFromHAR ([#72](https://github.com/NoamGaash/playwright-advanced-har/issues/72)) ([0c784e5](https://github.com/NoamGaash/playwright-advanced-har/commit/0c784e55b80ffe5b6328fca2036da0f6416f579f))
+
 ## [1.3.3](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.3.2...v1.3.3) (2024-12-23)
 
 
