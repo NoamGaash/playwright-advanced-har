@@ -1,10 +1,17 @@
 import { expect } from "@playwright/test";
-import { defaultMatcher, test } from "../lib/index";
+import { defaultMatcher, test, advancedRouteFromHAR } from "../lib/index";
 import fs from "fs";
 import { parseContent } from "../lib/index";
 
 test("sanity", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/demo-todo-app.har");
+	await page.goto("https://demo.playwright.dev/todomvc");
+});
+
+test("sanity with import", async ({ page }) => {
+	await advancedRouteFromHAR({ page }, async (r) => {
+		await r("tests/har/demo-todo-app.har");
+	});
 	await page.goto("https://demo.playwright.dev/todomvc");
 });
 
@@ -183,13 +190,12 @@ test("attached content", async ({ page, advancedRouteFromHAR }) => {
 	await advancedRouteFromHAR("tests/har/temp/not-embedded.har", {
 		matcher: async (request, entry) => {
 			let content = await parseContent(entry.response.content, "tests/har/temp");
-			if(typeof content === "object")
-				content = content.toString();
-		
+			if (typeof content === "object") content = content.toString();
+
 			expect(content).toBeTruthy();
 			expect(content).toContain("category");
 			return defaultMatcher(request, entry);
-		}
+		},
 	});
 	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
 });
@@ -202,15 +208,18 @@ test("test a joke recording with postprocess", async ({ page, advancedRouteFromH
 			postProcess(entry) {
 				entry.response.content.text = "This is a joke";
 				return entry;
-			}
-		}
+			},
+		},
 	});
 	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
 	await page.waitForSelector("text=This is a joke");
 	await page.close();
 });
 
-test("test a joke recording with different postprocess that was not recorded", async ({ page, advancedRouteFromHAR }) => {
+test("test a joke recording with different postprocess that was not recorded", async ({
+	page,
+	advancedRouteFromHAR,
+}) => {
 	await advancedRouteFromHAR("tests/har/temp/joke-postprocess.har", {
 		update: true,
 		updateContent: "embed",
@@ -218,8 +227,8 @@ test("test a joke recording with different postprocess that was not recorded", a
 			postProcess(entry) {
 				entry.response.content.text = "This is not a joke";
 				return entry;
-			}
-		}
+			},
+		},
 	});
 	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
 	await page.waitForSelector("text=This is not a joke");
@@ -236,8 +245,8 @@ test("test a postprocess that change only part of the output", async ({ page, ad
 				json.flags.custom = true;
 				entry.response.content.text = JSON.stringify(json);
 				return entry;
-			}
-		}
+			},
+		},
 	});
 	await page.goto("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit");
 	const flags = await page.evaluate(() => {
@@ -261,4 +270,3 @@ test.fail("sensitive data file should not contain sensitive data", async () => {
 	const data = await waitForFile("tests/har/temp/no-sensitive-data.har");
 	expect(data).not.toContain("top secret");
 });
-
