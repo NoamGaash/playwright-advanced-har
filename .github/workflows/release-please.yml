@@ -6,6 +6,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  id-token: write 
 
 name: release-please
 
@@ -20,6 +21,7 @@ jobs:
         id: release
         with:
           release-type: node
+
   npm-publish:
     environment: production
     runs-on: ubuntu-latest
@@ -33,6 +35,4 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: npm ci
       - run: npx playwright install
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+      - run: npm publish --provenance --access public
