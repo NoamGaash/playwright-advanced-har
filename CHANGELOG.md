@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.4.1...v1.4.2) (2026-03-03)
+
+
+### Bug Fixes
+
+* trusted publisher ([#130](https://github.com/NoamGaash/playwright-advanced-har/issues/130)) ([e77e155](https://github.com/NoamGaash/playwright-advanced-har/commit/e77e155ed60b1ba448679887ae6000b7ccbfe479))
+
 ## [1.4.1](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.4.0...v1.4.1) (2026-03-03)
 
 
