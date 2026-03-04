@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.4.0...v1.4.1) (2026-03-04)
+
+
+### Bug Fixes
+
+* restore playwright peer dep to ^1.35.0 ([#128](https://github.com/NoamGaash/playwright-advanced-har/issues/128)) ([4bb870a](https://github.com/NoamGaash/playwright-advanced-har/commit/4bb870a556d85253c6db2f9fe0c4ea96737d1556))
+* trusted publisher ([13d4c03](https://github.com/NoamGaash/playwright-advanced-har/commit/13d4c0319df809602e2a4d8dc31e8a277c96e02d))
+
 ## [1.4.0](https://github.com/NoamGaash/playwright-advanced-har/compare/v1.3.3...v1.4.0) (2025-05-20)
 
 
