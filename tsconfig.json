@@ -1,12 +1,14 @@
 {
 	"compilerOptions": {
-		"target": "ES2017",
+		"target": "ES2019",
+		"lib": ["ES2019", "DOM"],
 		"module": "commonjs",
+		"types": ["node"],
 		"declaration": true,
 		"outDir": "./lib",
+		"rootDir": "./src",
 		"strict": true,
-		"sourceMap": true,
-		"downlevelIteration": true
+		"sourceMap": true
 	},
 	"include": ["src"],
 	"exclude": ["node_modules", "**/__tests__/*"]
